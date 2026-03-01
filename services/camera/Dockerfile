@@ -10,7 +10,8 @@ RUN set -eux; \
         ca-certificates \
         apt-transport-https \
         libusb-1.0-0 \
-        libgl1-mesa-glx \
+        libgl1 \
+        libglx-mesa0 \
         libglib2.0-0; \
     rm -rf /var/lib/apt/lists/*
 

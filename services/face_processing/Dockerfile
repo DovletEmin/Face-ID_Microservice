@@ -8,7 +8,8 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
         ca-certificates \
         apt-transport-https \
-        libgl1-mesa-glx \
+        libgl1 \
+        libglx-mesa0 \
         libglib2.0-0; \
     rm -rf /var/lib/apt/lists/*
 
