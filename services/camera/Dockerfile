@@ -1,19 +1,10 @@
 FROM python:3.11-slim
 
 # Install system dependencies for RealSense
-RUN set -eux; \
-    for f in /etc/apt/sources.list /etc/apt/sources.list.d/*.list; do \
-        if [ -f "$f" ]; then sed -i 's|http://deb.debian.org/|https://deb.debian.org/|g' "$f"; fi; \
-    done; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends \
-        ca-certificates \
-        apt-transport-https \
+RUN apt-get update && apt-get install -y --no-install-recommends \
         libusb-1.0-0 \
-        libgl1 \
-        libglx-mesa0 \
-        libglib2.0-0; \
-    rm -rf /var/lib/apt/lists/*
+        libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
