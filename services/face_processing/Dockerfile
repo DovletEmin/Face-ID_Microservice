@@ -2,7 +2,8 @@ FROM python:3.11-slim-bookworm
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY services/face_processing/requirements.txt .
+# COPY requirements.txt .
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libglib2.0-0 \
         build-essential \
@@ -10,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get purge -y --auto-remove build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-COPY ./services/face_processing/app ./app
+COPY services/face_processing/app ./app
 
 # COPY app/ ./app/
 
