@@ -8,13 +8,13 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Production nginx
-FROM nginx:alpine
+# Production nginx (Debian-based — openssl pre-installed, no apk needed)
+FROM nginx:1.27
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Generate self-signed TLS certificate (openssl is already in nginx:alpine)
+# Generate self-signed TLS certificate
 RUN mkdir -p /etc/nginx/ssl \
  && openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout /etc/nginx/ssl/selfsigned.key \
