@@ -165,6 +165,7 @@ services:
     container_name: face_id_frontend
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - api-gateway
     restart: unless-stopped
