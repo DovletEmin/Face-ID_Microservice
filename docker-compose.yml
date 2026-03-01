@@ -99,7 +99,7 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - face_models:/app/models
+      #- face_models:/app/models
     restart: unless-stopped
     deploy:
       resources:
