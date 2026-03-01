@@ -155,20 +155,19 @@ services:
     restart: unless-stopped
 
   # ==========================================
-  # Frontend (Production only)
+  # Frontend
   # ==========================================
-  # Uncomment for production deployment:
-  #
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   container_name: face_id_frontend
-  #   ports:
-  #     - "80:80"
-  #   depends_on:
-  #     - api-gateway
-  #   restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: face_id_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
 
 volumes:
   postgres_data:
