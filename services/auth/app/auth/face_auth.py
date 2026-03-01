@@ -157,8 +157,16 @@ class FaceAuthenticator:
                     f"{self._settings.face_service_url}/api/v1/face/enroll",
                     json=payload,
                 )
-                response.raise_for_status()
-                return response.json()
+                if response.status_code >= 500:
+                    logger.error(
+                        f"Face service enrollment HTTP {response.status_code}: {response.text[:200]}"
+                    )
+                    return {"success": False, "message": "Face processing service error."}
+                try:
+                    return response.json()
+                except Exception as json_err:
+                    logger.error(f"Face service enrollment non-JSON response: {json_err}")
+                    return {"success": False, "message": "Face processing service returned invalid response."}
 
         except httpx.HTTPError as e:
             logger.error(f"Face service enrollment error: {e}")

@@ -177,10 +177,11 @@ async def _proxy_post(
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(url, json=body, headers=headers or {})
-            return JSONResponse(
-                content=resp.json(),
-                status_code=resp.status_code,
-            )
+            try:
+                content = resp.json()
+            except Exception:
+                content = {"detail": resp.text[:500] or "Empty response from service"}
+            return JSONResponse(content=content, status_code=resp.status_code)
     except httpx.ConnectError:
         raise HTTPException(status_code=503, detail="Service unavailable.")
     except Exception as e:
