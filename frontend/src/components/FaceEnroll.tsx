@@ -52,7 +52,7 @@ export function FaceEnroll({ onSwitchToLogin }: FaceEnrollProps) {
     }
 
     setTimeout(() => setScanning(false), 1000);
-  }, [username, fullName, enrollWithFrame]);
+  }, [username, fullName, enrollFace]);
 
   if (step === 'done') {
     return (

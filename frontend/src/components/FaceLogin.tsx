@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect } from 'react';
 import { CameraView } from './CameraView';
 import { useCameraStream } from '../hooks/useCameraStream';
 import { useAuthStore } from '../store/authStore';
-import { api } from '../services/api';
 
 interface FaceLoginProps {
   onSwitchToEnroll: () => void;
