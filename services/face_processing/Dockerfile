@@ -10,7 +10,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get purge -y --auto-remove build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-COPY app/ ./app/
+COPY ./services/face_processing/app ./app
+
+# COPY app/ ./app/
 
 EXPOSE 8002
 

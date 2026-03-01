@@ -76,8 +76,8 @@ services:
 
   face-service:
     build:
-      context: ./services/face_processing
-      dockerfile: Dockerfile
+      context: . #./services/face_processing
+      dockerfile: /services/face_processing/Dockerfile
     container_name: face_id_face
     ports:
       - "8002:8002"
