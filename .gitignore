@@ -31,7 +31,7 @@ frontend/dist/
 frontend/.cache/
 
 # Models (downloaded at runtime)
-models/
+#models/
 *.onnx
 *.pth
 
