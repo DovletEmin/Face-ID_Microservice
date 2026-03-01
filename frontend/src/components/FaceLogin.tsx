@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { CameraView } from './CameraView';
 import { useCameraStream } from '../hooks/useCameraStream';
 import { useAuthStore } from '../store/authStore';
+import { captureFrameFromCamera } from '../utils/captureFrame';
 
 interface FaceLoginProps {
   onSwitchToEnroll: () => void;
@@ -11,7 +12,7 @@ interface FaceLoginProps {
 
 export function FaceLogin({ onSwitchToEnroll }: FaceLoginProps) {
   const { isConnected, lastFrame, connect, disconnect } = useCameraStream();
-  const { loginWithFace, isLoading, error, clearError } = useAuthStore();
+  const { loginWithFrame, isLoading, error, clearError } = useAuthStore();
   const [scanning, setScanning] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
 
@@ -22,31 +23,30 @@ export function FaceLogin({ onSwitchToEnroll }: FaceLoginProps) {
 
   const handleLogin = useCallback(async () => {
     setScanning(true);
-    setStatusMessage('Scanning face...');
+    setStatusMessage('Capturing from your webcam...');
     clearError();
 
     try {
-      const success = await loginWithFace();
+      const frameB64 = await captureFrameFromCamera();
+      setStatusMessage('Scanning face...');
+      const success = await loginWithFrame(frameB64);
       if (success) {
         setStatusMessage('Authenticated!');
       } else {
         setStatusMessage('Recognition failed. Try again.');
       }
-    } catch {
-      setStatusMessage('Error during authentication.');
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Camera error';
+      setStatusMessage(`Error: ${msg}`);
     }
 
-    // Keep scanning animation for a moment
     setTimeout(() => setScanning(false), 1500);
-  }, [loginWithFace, clearError]);
+  }, [loginWithFrame, clearError]);
 
-  // Auto-scan when camera is connected
   const handleAutoScan = useCallback(async () => {
-    if (!isConnected || isLoading) return;
-
-    // Use server-side capture for authentication
+    if (isLoading) return;
     handleLogin();
-  }, [isConnected, isLoading, handleLogin]);
+  }, [isLoading, handleLogin]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -99,7 +99,7 @@ export function FaceLogin({ onSwitchToEnroll }: FaceLoginProps) {
         <div className="space-y-3">
           <button
             onClick={handleAutoScan}
-            disabled={!isConnected || isLoading}
+            disabled={isLoading}
             className="btn-primary w-full flex items-center justify-center gap-2"
           >
             {isLoading ? (

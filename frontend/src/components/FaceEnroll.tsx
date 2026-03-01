@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { CameraView } from './CameraView';
 import { useCameraStream } from '../hooks/useCameraStream';
 import { useAuthStore } from '../store/authStore';
+import { captureFrameFromCamera } from '../utils/captureFrame';
 
 interface FaceEnrollProps {
   onSwitchToLogin: () => void;
@@ -11,7 +12,7 @@ interface FaceEnrollProps {
 
 export function FaceEnroll({ onSwitchToLogin }: FaceEnrollProps) {
   const { isConnected, lastFrame, connect, disconnect } = useCameraStream();
-  const { enrollFace, isLoading, error, clearError } = useAuthStore();
+  const { enrollWithFrame, isLoading, error, clearError } = useAuthStore();
 
   const [username, setUsername] = useState('');
   const [fullName, setFullName] = useState('');
@@ -36,23 +37,25 @@ export function FaceEnroll({ onSwitchToLogin }: FaceEnrollProps) {
   const handleCapture = useCallback(async () => {
     setScanning(true);
 
-    // Trigger server-side camera capture and enrollment
     try {
-      const enrollResult = await enrollFace(
+      const frameB64 = await captureFrameFromCamera();
+      const enrollResult = await enrollWithFrame(
         username.trim(),
         fullName.trim() || undefined,
+        frameB64,
       );
 
       setResult(enrollResult);
       if (enrollResult.success) {
         setStep('done');
       }
-    } catch {
-      setResult({ success: false, message: 'Enrollment failed.' });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Camera error';
+      setResult({ success: false, message: msg });
     }
 
     setTimeout(() => setScanning(false), 1000);
-  }, [username, fullName, enrollFace]);
+  }, [username, fullName, enrollWithFrame]);
 
   if (step === 'done') {
     return (
@@ -118,7 +121,7 @@ export function FaceEnroll({ onSwitchToLogin }: FaceEnrollProps) {
           <div className="space-y-3">
             <button
               onClick={handleCapture}
-              disabled={!isConnected || isLoading}
+              disabled={isLoading}
               className="btn-primary w-full"
             >
               {isLoading ? 'Capturing...' : 'Capture Face'}
