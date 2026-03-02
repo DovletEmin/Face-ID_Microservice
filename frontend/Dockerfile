@@ -1,17 +1,7 @@
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-COPY package.json package-lock.json* ./
-RUN npm install
-
-COPY . .
-RUN npm run build
-
-# Production nginx (Debian-based — openssl pre-installed, no apk needed)
 FROM nginx:1.27
 
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Copy pre-built frontend (run `npm install && npm run build` locally first)
+COPY dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Generate self-signed TLS certificate
