@@ -7,7 +7,9 @@ COPY services/face_processing/requirements.txt .
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libglib2.0-0 \
         libgl1 \
-    && pip install --no-cache-dir --prefer-binary -r requirements.txt \
+    && pip install --no-cache-dir --prefer-binary \
+        --default-timeout=100 \
+        -r requirements.txt \
     && rm -rf /var/lib/apt/lists/*
 
 # Disable albumentations version-check network call (avoids SSL timeout on startup)
