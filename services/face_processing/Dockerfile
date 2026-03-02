@@ -13,7 +13,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY services/face_processing/app ./app
 
-# COPY app/ ./app/
+# Pre-download InsightFace buffalo_l model at build time so the container
+# works without internet access at runtime.
+RUN python -c "
+from insightface.app import FaceAnalysis
+fa = FaceAnalysis(name='buffalo_l', root='/app/models', providers=['CPUExecutionProvider'])
+fa.prepare(ctx_id=0, det_size=(640, 640))
+print('InsightFace buffalo_l model download complete.')
+"
 
 EXPOSE 8002
 
