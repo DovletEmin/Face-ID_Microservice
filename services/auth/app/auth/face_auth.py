@@ -5,6 +5,7 @@ to perform end-to-end face authentication.
 """
 
 import logging
+import asyncio
 from typing import Optional
 
 import httpx
@@ -21,6 +22,29 @@ class FaceAuthenticator:
     def __init__(self) -> None:
         self._settings = get_settings()
         self._jwt = JWTHandler()
+
+    async def _post_with_retry(
+        self,
+        url: str,
+        payload: dict,
+        max_retries: int = 4,
+        timeout: float = 30.0,
+    ) -> httpx.Response:
+        """POST with exponential-backoff retry on connection errors."""
+        for attempt in range(max_retries):
+            try:
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    return await client.post(url, json=payload)
+            except (httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout) as e:
+                if attempt < max_retries - 1:
+                    wait = 2 ** attempt  # 1s, 2s, 4s
+                    logger.warning(
+                        f"Face service unreachable (attempt {attempt + 1}/{max_retries}), "
+                        f"retrying in {wait}s: {e}"
+                    )
+                    await asyncio.sleep(wait)
+                else:
+                    raise
 
     async def authenticate_with_camera(self) -> dict:
         """Full authentication flow:
@@ -69,13 +93,12 @@ class FaceAuthenticator:
             payload["depth_shape"] = depth_shape
 
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    f"{self._settings.face_service_url}/api/v1/face/authenticate",
-                    json=payload,
-                )
-                response.raise_for_status()
-                result = response.json()
+            response = await self._post_with_retry(
+                f"{self._settings.face_service_url}/api/v1/face/authenticate",
+                payload,
+            )
+            response.raise_for_status()
+            result = response.json()
 
         except httpx.HTTPError as e:
             logger.error(f"Face service connection error: {e}")
@@ -152,21 +175,20 @@ class FaceAuthenticator:
             payload["depth_shape"] = depth_shape
 
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    f"{self._settings.face_service_url}/api/v1/face/enroll",
-                    json=payload,
+            response = await self._post_with_retry(
+                f"{self._settings.face_service_url}/api/v1/face/enroll",
+                payload,
+            )
+            if response.status_code >= 500:
+                logger.error(
+                    f"Face service enrollment HTTP {response.status_code}: {response.text[:200]}"
                 )
-                if response.status_code >= 500:
-                    logger.error(
-                        f"Face service enrollment HTTP {response.status_code}: {response.text[:200]}"
-                    )
-                    return {"success": False, "message": "Face processing service error."}
-                try:
-                    return response.json()
-                except Exception as json_err:
-                    logger.error(f"Face service enrollment non-JSON response: {json_err}")
-                    return {"success": False, "message": "Face processing service returned invalid response."}
+                return {"success": False, "message": "Face processing service error."}
+            try:
+                return response.json()
+            except Exception as json_err:
+                logger.error(f"Face service enrollment non-JSON response: {json_err}")
+                return {"success": False, "message": "Face processing service returned invalid response."}
 
         except httpx.HTTPError as e:
             logger.error(f"Face service enrollment error: {e}")

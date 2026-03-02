@@ -11,6 +11,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get purge -y --auto-remove build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# Disable albumentations version-check network call (avoids SSL timeout on startup)
+ENV NO_ALBUMENTATIONS_UPDATE=1
+
+# Pre-build matplotlib font cache so first startup doesn't block for 60s
+RUN python -c "import matplotlib; matplotlib.font_manager.fontManager; print('Matplotlib font cache built.')"
+
 COPY services/face_processing/app ./app
 
 # Copy pre-downloaded InsightFace buffalo_l model (must exist locally before build).
