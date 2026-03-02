@@ -4,6 +4,7 @@ __pycache__/
 *.egg-info/
 *.egg
 dist/
+!frontend/dist/
 build/
 .eggs/
 
@@ -27,7 +28,7 @@ docker-compose.override.yml
 
 # Node
 node_modules/
-frontend/dist/
+# frontend/dist/ is intentionally tracked for offline Docker builds
 frontend/.cache/
 
 # Models (downloaded at runtime)
