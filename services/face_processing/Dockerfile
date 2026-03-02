@@ -15,7 +15,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV NO_ALBUMENTATIONS_UPDATE=1
 
 # Pre-build matplotlib font cache so first startup doesn't block for 60s
-RUN python -c "import matplotlib.font_manager; print('Matplotlib font cache built.')"
+# RUN python -c "import matplotlib.font_manager; print('Matplotlib font cache built.')"
+RUN python -c "import matplotlib.font_manager as fm; fm.findSystemFonts(); print('Matplotlib font cache built.')"
+
 
 COPY services/face_processing/app ./app
 
