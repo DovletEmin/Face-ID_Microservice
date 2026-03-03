@@ -23,9 +23,10 @@ COPY services/face_processing/requirements.txt .
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libglib2.0-0 \
         libgl1 \
-    && pip install --no-cache-dir \
-        --no-index \
-        --find-links=/wheelhouse \
+    && pip wheel --no-cache-dir --prefer-binary \
+        --timeout 1000 \
+        --retries 10 \
+        --wheel-dir /wheelhouse \
         -r requirements.txt \
     && rm -rf /var/lib/apt/lists/* /wheelhouse
 
