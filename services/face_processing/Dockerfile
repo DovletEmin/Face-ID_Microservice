@@ -1,16 +1,33 @@
+# ── Stage 1: download all wheels into /wheelhouse ──────────────────────────────
+FROM python:3.11-slim-bookworm AS wheel-builder
+
+WORKDIR /build
+
+COPY services/face_processing/requirements.txt .
+
+RUN pip install --upgrade pip \
+    && pip wheel --no-cache-dir --prefer-binary \
+        --wheel-dir /wheelhouse \
+        -r requirements.txt
+
+# ── Stage 2: final image ────────────────────────────────────────────────────────
 FROM python:3.11-slim-bookworm
 
 WORKDIR /app
 
+# Copy pre-built wheels from the builder stage
+COPY --from=wheel-builder /wheelhouse /wheelhouse
+
 COPY services/face_processing/requirements.txt .
-# COPY requirements.txt .
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libglib2.0-0 \
         libgl1 \
-    && pip install --no-cache-dir --prefer-binary \
-        --default-timeout=100 \
+    && pip install --no-cache-dir \
+        --no-index \
+        --find-links=/wheelhouse \
         -r requirements.txt \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* /wheelhouse
 
 # Disable albumentations version-check network call (avoids SSL timeout on startup)
 ENV NO_ALBUMENTATIONS_UPDATE=1
